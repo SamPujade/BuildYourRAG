@@ -1,0 +1,31 @@
+# This file configures model hyperparameters.
+
+dataset:
+  CHROMA_DATA_PATH: "data/chroma_data"
+  COLLECTION_NAME: "test"
+
+processing:
+  EMBEDDING_MODEL: "Multilingual"   # ["Multilingual", "Jina", "GTE"]
+  OCR: "Tesseract"
+  MULTIMODAL_EXTRACTION: True
+  LAYOUT: False
+  FIGURE_EXTRACTION: False
+  TABLE_EXTRACTION: False
+  SUB_CHUNKING: True
+  MAX_CHUNK_SIZE: 500
+  OVERLAP: 16
+  SEPARATOR: "\n"
+
+retrieval:
+  TOP_K: 20
+  SIMILARITY: "cosine"  # ["cosine", "l2", "ip"]
+
+generation:
+  MODEL_FOLDER: "models/"
+  LLM: "Gemini 1.5 Flash" # "Mistral Nemo"
+  TEMPERATURE: 0.5
+  MAX_TOKENS: 512
+  N_CTX: 4096
+
+hardware:
+  DEVICE: "cpu"  # Set to "cpu" or "cuda"

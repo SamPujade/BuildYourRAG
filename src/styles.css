@@ -1,0 +1,17 @@
+.stApp > header {
+    display: none;
+}
+
+.stApp {
+    padding: 0;
+    width: 100vw;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: auto;
+}
+
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 0rem;
+    padding-left: 5rem;
+    padding-right: 5rem;
+}
