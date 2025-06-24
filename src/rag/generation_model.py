@@ -104,14 +104,14 @@ class GeminiFlash(GoogleAI):
 
 class GeminiFlash8b(GoogleAI):
     def __init__(self, api_key, response_format=None):
-        super(GeminiFlash, self).__init__(api_key, response_format)
+        super(GeminiFlash8b, self).__init__(api_key, response_format)
         self.path = "gemini-1.5-flash-8b"
         self.init_model()
 
 
 class GeminiPro(GoogleAI):
     def __init__(self, api_key, response_format=None):
-        super(GeminiFlash, self).__init__(api_key, response_format)
+        super(GeminiPro, self).__init__(api_key, response_format)
         self.path = "gemini-1.5-pro"
         self.init_model()
 
