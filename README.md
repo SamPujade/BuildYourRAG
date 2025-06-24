@@ -22,7 +22,7 @@
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/BuildYourRAG.git
+git clone https://github.com/SamPujade/BuildYourRAG.git
 cd BuildYourRAG
 ```
 
@@ -58,7 +58,11 @@ Logs are saved to `logs/backend.log` and `logs/frontend.log`.
 │   ├── app.py               # Streamlit frontend app
 │   └── server/
 │       └── main.py          # FastAPI backend entry point
-└── logs/                    # Log files for debugging
+├── logs/                    # Log files for debugging
+└── data/                    # Data folder
+    └── chroma_data/         # ChromaDB collection folder
+        └── upload/          # Uploaded folders
+
 ```
 
 ## 📌 Requirements
