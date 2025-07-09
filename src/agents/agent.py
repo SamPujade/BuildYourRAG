@@ -8,6 +8,24 @@ from rag.pipeline import Retriever, Generator, Router
 from templates.answering import prompt_template_KID_german
 from templates.router import route_and_reformulate_KID
 
+class AgentYAML:
+    def __init__(self, config_path="agents.yaml", agent_name="KIDAgent"):
+        with open(config_path, "r") as file:
+            config = yaml.safe_load(file)[agent_name]
+
+        self.initial_message = config["initial_message"]
+        self.prompt_template = config["prompt_template"]
+        self.router_template = config["router_template"]
+        self.collection_name = config["collection_name"]
+
+        # Resolve the processing function dynamically if needed
+        processing_function_name = config["processing_function"]
+        self.processing_function = globals()[processing_function_name]  # or use importlib
+
+        self.retriever = Retriever(self.collection_name)
+        self.generator = Generator(template=self.prompt_template)
+        self.router = Router(template=self.router_template)
+
 class Agent:
     def __init__(self,
             initial_message,
