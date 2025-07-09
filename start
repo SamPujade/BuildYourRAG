@@ -1,9 +1,30 @@
 #!/bin/bash
 
+echo "=== Starting BuildYourRAG ==="
+
+if [ ! -f .env ]; then
+  echo ".env file not found. Creating with default BACKEND_PORT=8199"
+  echo "BACKEND_PORT=8199" > .env
+fi
+export $(grep -v '^#' .env | xargs)
 mkdir -p data/chroma_data/upload/
 
+# start backend
+echo "Starting Backend on port $BACKEND_PORT"
 uv sync
-uv run uvicorn src.server.main:app --reload --port 8199 > "logs/backend.log" 2>&1 &
+uv run uvicorn src.server.main:app --reload --port $BACKEND_PORT > "logs/backend.log" 2>&1 &
+
+# wait for backend to be ready
+echo "Waiting for backend to start on port $BACKEND_PORT..."
+while ! nc -z localhost $BACKEND_PORT; do
+  sleep 0.5
+done
+echo "Backend is up."
+
+# start frontend
+echo "Starting Frontend"
 uv run streamlit run src/app.py --browser.gatherUsageStats false > "logs/frontend.log" 2>&1 &
+
+echo "=== Startup Complete ==="
 
 wait

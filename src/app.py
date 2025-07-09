@@ -5,13 +5,17 @@ Usage:
     streamlit run app.py
 """
 
+import os
+from dotenv import load_dotenv
 import uuid
 import requests
 import streamlit as st
 
 
 # FastAPI server base URL
-BASE_URL = "http://127.0.0.1:8199"
+load_dotenv()
+port = os.getenv("BACKEND_PORT", "8199")
+BASE_URL = f"http://127.0.0.1:{port}"
 
 
 class RAGApp:
