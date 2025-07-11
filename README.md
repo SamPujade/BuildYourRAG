@@ -47,6 +47,41 @@ bash start
 
 Logs are saved to `logs/backend.log` and `logs/frontend.log`.
 
+---
+
+## Custom prompts
+
+You can build you own agent with custom prompts for your specific use cases !
+To do so, create a yaml file in `src/agents/examples/` with the following format : 
+```yaml
+initial_message: >
+  <Custom initial message>
+
+prompt_template: |
+  <Custom generation template using context, chat history and user message (query)>
+
+  <context>
+  {context}
+  </context>
+
+  <history>
+  {history}
+  </history>
+
+  <question>
+  {message}
+  </question>
+
+router_template: |
+  <Custom routing template for query classification, query rephrasing or entity extraction>
+
+  <question>
+  {query}
+  </question>
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -64,6 +99,8 @@ Logs are saved to `logs/backend.log` and `logs/frontend.log`.
         └── upload/          # Uploaded folders
 
 ```
+
+---
 
 ## 📌 Requirements
 

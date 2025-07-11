@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 # third-party imports
 from pdf2image import convert_from_path
 from PyPDF2 import PdfReader
-from PIL import Image
 
 
 sys.path.append("./src/")
@@ -14,51 +13,32 @@ from models.generation import GeminiFlash
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-PDF_CONFIG_PATH = os.path.abspath("src/configs/extract_kit_config.yaml")
-
-starter_labels = {
-    "figure": "Figure:\n",
-    "figure_caption": "Figure caption:\n",
-    "table": "Table:\n",
-    "table_caption": "Table caption:\n",
-    "table_footnote": "Table footnote:\n",
-}
-
-new_labels = {
-    "title": "title",
-    "plain text": "text",
-    "figure": "figure",
-    "figure_caption": "figure",
-    "table": "table",
-    "table_caption": "table",
-    "table_footnote": "table",
-    "isolate_formula": "formula",
-    "formula_caption": "formula",
-}
 
 
 def token_len(chunk):
+    """Calculates the number of tokens (words) in a given chunk of text.
+
+    Args:
+        chunk (str): The text chunk.
+
+    Returns:
+        int: The number of tokens in the chunk.
+    """
     return len(chunk.split())
 
 
-def split_text(text, max_chunk_size, separator="\n"):
-    entries = text.split(separator)
-    chunks, current_chunk = [], ""
-
-    for entry in entries:
-        if token_len(current_chunk + " " + entry) > max_chunk_size:
-            chunks.append(current_chunk + separator)
-            current_chunk = entry
-        else:
-            current_chunk += entry + separator
-
-    if current_chunk:
-        chunks.append(current_chunk[:-1])
-
-    return chunks
-
-
 def basic_chunking(texts, config):
+    """Performs basic text chunking based on a separator and max chunk size.
+
+    Args:
+        texts (list): List of text strings to chunk.
+        config (dict): Configuration dictionary with processing parameters.
+
+    Returns:
+        tuple: A tuple containing:
+            - list: A list of text chunks (str).
+            - list: A list of labels, all "text" for basic chunking.
+    """
     separator = config["processing"]["SEPARATOR"]
     max_chunk_size = config["processing"]["MAX_CHUNK_SIZE"]
     chunks, current_chunk = [], ""
@@ -83,70 +63,18 @@ def basic_chunking(texts, config):
     return chunks, ["text" for _ in chunks]
 
 
-def recursive_chunking(texts, labels, config):
-    max_chunk_size = config["processing"]["MAX_CHUNK_SIZE"]
-    overlap = config["processing"]["OVERLAP"]
-    separator = config["processing"]["SEPARATOR"]
-    chunks, chunk_labels = [], []
-    i = 0
-    current_title = None
-
-    # Split initial chunks if they are too big
-    initial_chunks, initial_labels = [], []
-    for k, entry in enumerate(texts):
-        split_txt = split_text(entry, max_chunk_size, separator)
-
-        if labels[k] in starter_labels:
-            split_txt = [starter_labels[labels[k]] + txt for txt in split_txt]
-
-        initial_chunks.extend(split_txt)
-        initial_labels.extend(len(split_txt) * [labels[k]])
-
-    # Recursively merge chunks
-    while i < len(initial_chunks):
-        current_label = initial_labels[i]
-        merged_text = initial_chunks[i]
-        i += 1
-
-        # Add current title to the beginning of the chunk
-        if current_label != "title" and current_title:
-            merged_text = current_title + "\n" + merged_text
-
-        # Continue merging until the maximum chunk size is reached
-        while (
-            i < len(initial_chunks)
-            and token_len(merged_text + " " + initial_chunks[i]) < max_chunk_size
-        ):
-            if initial_labels[i] == "title":
-                current_title = initial_chunks[i]
-            elif initial_labels[i] == "table" or initial_labels[i] == "figure":
-                current_label = initial_labels[i]
-            merged_text += "\n" + initial_chunks[i]
-            i += 1
-
-        # Append the merged text and corresponding label
-        chunks.append(merged_text)
-        chunk_labels.append(current_label)
-
-    # for i, chunk in enumerate(chunks):
-    #     print(f"\n\nCHUNK {i}\n")
-    #     print(chunk)
-
-    return chunks, chunk_labels
-
-
 def sub_chunking(chunks, labels):
-    """
-    Splits each chunk into subchunks.
+    """Splits each chunk into smaller sub-chunks.
 
-    Parameters:
+    Args:
         chunks (list of str): List of input chunks.
         labels (list): Corresponding labels for the input chunks.
 
     Returns:
-        sub_chunks: List of resulting subchunks.
-        labels: Corresponding labels for each subchunk.
-        chunk_indexes: List of indexes indicating the parent chunk of each subchunk.
+        tuple: A tuple containing:
+            - list: List of resulting sub-chunks.
+            - list: Corresponding labels for each sub-chunk.
+            - list: List of indexes indicating the parent chunk of each sub-chunk.
     """
     max_token_length = 64
     sub_chunks, new_labels, chunk_indexes = [], [], []
@@ -174,6 +102,17 @@ def sub_chunking(chunks, labels):
 
 
 def extract_text(input_path, config):
+    """Extracts text from a PDF and performs basic chunking.
+
+    Args:
+        input_path (str): Path to the PDF file.
+        config (dict): Configuration dictionary with processing parameters.
+
+    Returns:
+        tuple: A tuple containing:
+            - list: A list of text chunks (str).
+            - list: A list of labels, all "text".
+    """
     extracted_texts = []
     reader = PdfReader(input_path)
     for page in reader.pages:
@@ -184,24 +123,40 @@ def extract_text(input_path, config):
     return all_chunks, all_labels
 
 
-def extract_multimodal_all(model, input_path):
+def extract_multimodal(model, input_path):
+    """Extracts multimodal content (text, tables, figures) from PDF pages.
+
+    Args:
+        model: The multimodal extraction model (e.g., GeminiFlash).
+        input_path (str): Path to the PDF file.
+
+    Returns:
+        list: A list of extracted content strings.
+    """
     pages = convert_from_path(input_path)
     results = []
     query = """
-    Extrahieren Sie die Textdaten in diesem Bild einer PDF-Seite in einem Markdown Format. 
-    Extrahieren Sie nur den Text, ohne etwas anderes zu sagen oder eine weitere Erklärung zu geben. 
-    Seien Sie erschöpfend, extrahieren Sie alle Textinformationen.
-    Leiten Sie die Ausgabe nicht mit etwas wie „Hier ist der extrahierte Text“ oder ähnlichem ein, sondern antworten Sie direkt.
-    Kennzeichnen Sie „Blöcke“ und trennen Sie jeden Block mit einem "|||" Trennzeichen ab. Ein Block ist ein Teil des Textes, der zum besseren Verständnis nicht geteilt werden sollte (Absatz, Tabelle...).
+    Extract text data from this image of a PDF page in Markdown format.
+    Extract only the text, without saying anything else or giving any
+    further explanation. Be exhaustive, extract all text information.
+    Do not introduce the output with something like "Here is the extracted
+    text" or similar, but reply directly.
+    Label "blocks" and separate each block with a "|||" delimiter.
+    A block is a part of the text that should not be divided for better
+    understanding (paragraph, table...).
 
+    Figures:
+    Extract the text of the image without describing it.
+    If there is no text data, return nothing. If there is a diagram, try
+    to read the values of the diagram (e.g., bar values) from the axes
+    and link them to the legend.
 
-    Abbildungen :
-    Extrahieren Sie den Text des Bildes, ohne es zu beschreiben. 
-    Wenn es keine Textdaten gibt, geben Sie nichts zurück. Wenn es ein Diagramm gibt, versuchen Sie, die Werte des Diagramms (z. B. Balkenwerte) anhand der Achsen zu lesen und sie mit der Legende zu verknüpfen.“
-
-    Tabellen :
-    WICHTIG: Konvertieren Sie Tabellen in ein Markdown-Format. 
-    Fügen Sie den Titel des Textes ein. Behalten Sie die Struktur der Tabelle mit Überschriften bei und versuchen Sie, jede Zelle der richtigen Zeile oder Spalte zuzuordnen, auch wenn die Zeilen der Tabelle implizit sind und nicht direkt angezeigt werden."""
+    Tables:
+    IMPORTANT: Convert tables to Markdown format.
+    Include the title of the text. Maintain the structure of the table
+    with headers and try to associate each cell with the correct row or
+    column, even if the table rows are implicit and not directly displayed.
+    """
 
     for page in pages:
         results.append(model.predict_image(query, page, []))
@@ -209,29 +164,24 @@ def extract_multimodal_all(model, input_path):
     return results
 
 
-def extract_multimodal(model, images):
-    # query = "Extrahieren Sie die Textdaten in diesem Bild in einem strukturierten Format. Extrahieren Sie nur den Text, ohne etwas anderes zu sagen oder weitere Erklärungen zu geben. Wenn es keine Textdaten gibt, wird nur zurückgegeben: „kein Text“."
-    query = "Extrahieren Sie die Textdaten in diesem Bild in einem strukturierten Format. Extrahieren Sie nur den Text, ohne etwas anderes zu sagen oder weitere Erklärungen zu geben. Wenn es keine Textdaten gibt, wird nur zurückgegeben: „kein Text“. Wenn ein Diagramm vorhanden ist, versuchen Sie, die Werte des Diagramms (z. B. Balkenwerte) mithilfe der Achse zu lesen und mit der Legende zu verknüpfen."
-    return [
-        model.predict_image(query, Image.fromarray(image), []) + "\n"
-        for image in images
-    ]
+def extract_chunks(input_path, config):
+    """Extracts and chunks content from a file based on configuration.
 
+    Args:
+        input_path (str): Path to the input file.
+        config (dict): Configuration dictionary for processing.
 
-def extract_multimodal_table(model, images):
-    # query = "Extrahieren Sie die Textdaten in diesem Bild in einem strukturierten Format. Extrahieren Sie nur den Text, ohne etwas anderes zu sagen oder weitere Erklärungen zu geben. Wenn es keine Textdaten gibt, wird nur zurückgegeben: „kein Text“."
-    query = "Extrahieren Sie die Textdaten in diesem Bild einer Tabelle in einem strukturierten Format. Extrahieren Sie nur den Text, ohne etwas anderes zu sagen oder eine weitere Erklärung zu geben. Konvertieren Sie die Tabelle in ein Markdown-Format. Fügen Sie den Titel des Textes ein. Behalten Sie die Struktur der Tabelle mit Überschriften bei und versuchen Sie, jede Zelle der richtigen Zeile oder Spalte zuzuordnen, auch wenn die Zeilen der Tabelle implizit sind und nicht direkt angezeigt werden."
-    return [
-        model.predict_image(query, Image.fromarray(image), []) + "\n"
-        for image in images
-    ]
-
-
-def extract_chunks(input_path, config, output_path="data/outputs/layout_detection/"):
+    Returns:
+        tuple: A tuple containing:
+            - list: List of extracted chunks.
+            - list: List of labels for each chunk.
+            - list or None: List of parent chunk indexes for sub-chunks,
+                            or None if not sub-chunking.
+    """
     print(f"Processing file {input_path}")
     if config["processing"]["MULTIMODAL_EXTRACTION"]:
         extraction_model = GeminiFlash(api_key=GOOGLE_API_KEY)
-        text_results = extract_multimodal_all(extraction_model, input_path)
+        text_results = extract_multimodal(extraction_model, input_path)
         config["processing"]["SEPARATOR"] = "|||"
         chunks, labels = basic_chunking(text_results, config)
 
@@ -247,6 +197,13 @@ def extract_chunks(input_path, config, output_path="data/outputs/layout_detectio
 
 
 def process(collection, file_path, config):
+    """Processes a file by extracting chunks and adding them to a collection.
+
+    Args:
+        collection: The ChromaDB collection object.
+        file_path (str): Path to the file to process.
+        config (dict): Configuration dictionary for processing.
+    """
     chunks, labels, indexes = extract_chunks(file_path, config)
 
     filename = os.path.basename(file_path)

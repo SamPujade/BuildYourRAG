@@ -11,9 +11,6 @@ processing:
   EMBEDDING_MODEL: "Multilingual"   # ["Multilingual", "Jina", "GTE"]
   OCR: "Tesseract"
   MULTIMODAL_EXTRACTION: True
-  LAYOUT: False
-  FIGURE_EXTRACTION: False
-  TABLE_EXTRACTION: False
   SUB_CHUNKING: True
   MAX_CHUNK_SIZE: 500
   OVERLAP: 16

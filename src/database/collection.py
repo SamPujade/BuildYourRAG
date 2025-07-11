@@ -1,4 +1,12 @@
 def group_sub_chunks(collection):
+    """Groups sub-chunks in a ChromaDB collection into complete chunks.
+
+    Args:
+        collection: The ChromaDB collection object.
+
+    Returns:
+        tuple: A tuple of grouped chunk documents and their metadata.
+    """
     elements = collection.get()
     chunks, indexes = [], []
     metadatas = []
@@ -26,6 +34,12 @@ def group_sub_chunks(collection):
 
 
 def delete_collection(client, collection_name):
+    """Deletes a specified collection from the ChromaDB client.
+
+    Args:
+        client: The ChromaDB client object.
+        collection_name (str): The name of the collection to be deleted.
+    """
     collection = client.get_collection(collection_name)
     ids = collection.get()["ids"]
     if ids:
