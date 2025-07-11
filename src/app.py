@@ -36,7 +36,9 @@ class RAGApp:
         """
         self.session_id = uuid.uuid4()
         self.model_name = None
+        self.collection_name = None
         self.base_config = self.get_config()
+        self.agent_name = self.base_config["agent"]["AGENT"]
 
         self.initialize_ui()
 
@@ -109,15 +111,11 @@ class RAGApp:
                     step=0.1,
                     format="%.1f",
                 )
-                layout = st.checkbox(
-                    "Layout", value=self.base_config["processing"]["LAYOUT"]
+                multimodal_extraction = st.checkbox(
+                    "Multimodal Extraction", value=self.base_config["processing"]["MULTIMODAL_EXTRACTION"]
                 )
                 sub_chunking = st.checkbox(
                     "Sub-chunking", value=self.base_config["processing"]["SUB_CHUNKING"]
-                )
-                figure_extraction = st.checkbox(
-                    "Figure Extraction",
-                    value=self.base_config["processing"]["FIGURE_EXTRACTION"],
                 )
                 top_k = st.slider(
                     "Top K",
@@ -131,13 +129,31 @@ class RAGApp:
                     f"{BASE_URL}/update-config/",
                     json={
                         "temperature": temperature,
-                        "layout": layout,
                         "sub_chunking": sub_chunking,
-                        "figure_extraction": figure_extraction,
+                        "multimodal_extraction": multimodal_extraction,
                         "top_k": top_k,
                     },
                     timeout=10,
                 )
+
+            new_agent_name = st.selectbox(
+                "Select an agent",
+                response_json["agent_names"],
+                index=response_json["agent_index"],
+                disabled=False,
+            )
+
+            if new_agent_name != self.agent_name:
+                requests.post(
+                    f"{BASE_URL}/update-agent/",
+                    json={
+                        "agent_name": new_agent_name,
+                    },
+                    timeout=100,
+                )
+                st.session_state["messages"] = []
+                self.agent_name = new_agent_name
+                st.rerun()
 
             self.collection_name = st.selectbox(
                 "Select a collection",

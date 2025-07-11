@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 import sys
 import yaml
 
@@ -9,7 +11,11 @@ from rag import Retriever, Generator, Router
 
 class Agent:
     def __init__(self, config):
-        with open(config["agent"]["YAML_PATH"], "r", encoding="utf-8") as file:
+        self._initialize(config)
+
+    def _initialize(self, config):
+        self.file = os.path.join(config["agent"]["EXAMPLE_FOLDER"], config["agent"]["AGENT"])
+        with open(self.file, "r", encoding="utf-8") as file:
             agent_config = yaml.safe_load(file)
 
         self.initial_message = agent_config["initial_message"]
@@ -27,6 +33,9 @@ class Agent:
         if collection_name != self.collection_name:
             self.collection_name = collection_name
             self.retriever = Retriever(collection_name, config)
+
+    def update(self, config):
+        self._initialize(config)
 
     def predict(self, model, message, history=[], user_context=[]):
         router_output = self.router.route_and_reformulate(model, message)
@@ -49,3 +58,8 @@ class Agent:
 
         print("=== Generator Output ===\n", output, "\n")
         return output, context, user_information
+
+def list_agents(config):
+    folder_path = Path(config["agent"]["EXAMPLE_FOLDER"])
+    return [f.name for f in folder_path.glob('*.yaml')]
+

@@ -14,7 +14,7 @@ sys.path.append("./src/")
 # local module imports
 from models.generation import get_model_by_name, get_model_names
 from models.embedding import get_model
-from agents.agent import Agent
+from agents.agent import Agent, list_agents
 
 
 load_dotenv()
@@ -29,6 +29,7 @@ CHROMA_DATA_PATH = config["dataset"]["CHROMA_DATA_PATH"]
 UPLOAD_FOLDER = os.path.join(CHROMA_DATA_PATH, "upload/")
 MODEL_FOLDER = config["generation"]["MODEL_FOLDER"]
 DEFAULT_MODEL = config["generation"]["LLM"]
+DEFAULT_AGENT = config["agent"]["AGENT"]
 COLL_NAME = config["dataset"]["COLLECTION_NAME"]
 EMB_MODEL_NAME = config["processing"]["EMBEDDING_MODEL"]
 SIMILARITY = config["retrieval"]["SIMILARITY"]
@@ -83,6 +84,21 @@ def initial_message():
         "initial_message": agent.initial_message,
     }
 
+
+class AgentNameInput(BaseModel):
+    """
+    Name of the agent to update.
+
+    Attributes:
+        agent_name (str): The name of the agent to update
+    """
+    agent_name: str
+
+
+@app.post("/update-agent/")
+def update_agent(body: AgentNameInput):
+    config["agent"]["AGENT"] = body.agent_name
+    agent.update(config)
 
 class GenerationInput(BaseModel):
     """
@@ -266,7 +282,7 @@ def create_collection(body: CollectionInput):
         os.makedirs(folder_path)
         give_permissions(folder_path)
 
-    collection = client.create_collection(
+    client.create_collection(
         name=body.collection_name,
         embedding_function=embedding_function,
         metadata={"hnsw:space": SIMILARITY},
@@ -287,6 +303,10 @@ def get_names():
     model_index = (
         model_names.index(DEFAULT_MODEL) if DEFAULT_MODEL in model_names else 0
     )
+    agent_names = list_agents(config)
+    agent_index = (
+        agent_names.index(DEFAULT_AGENT) if DEFAULT_AGENT in agent_names else 0
+    )
 
     coll_list = [
         name for name in os.listdir(UPLOAD_FOLDER)
@@ -297,6 +317,8 @@ def get_names():
     return {
         "model_names": model_names,
         "model_index": model_index,
+        "agent_names": agent_names,
+        "agent_index": agent_index,
         "collection_list": coll_list,
         "collection_index": coll_index,
     }
@@ -338,9 +360,8 @@ class ConfigInput(BaseModel):
         top_k (int): The number of top relevant documents to retrieve.
     """
     temperature: float
-    layout: bool
     sub_chunking: bool
-    figure_extraction: bool
+    multimodal_extraction: bool
     top_k: int
 
 
@@ -355,7 +376,6 @@ def update_config(body: ConfigInput):
                             figure extraction, and top_k.
     """
     config["generation"]["TEMPERATURE"] = body.temperature
-    config["processing"]["LAYOUT"] = body.layout
     config["processing"]["SUB_CHUNKING"] = body.sub_chunking
-    config["processing"]["FIGURE_EXTRACTION"] = body.figure_extraction
+    config["processing"]["MULTIMODAL_EXTRACTION"] = body.multimodal_extraction
     config["retrieval"]["TOP_K"] = body.top_k
