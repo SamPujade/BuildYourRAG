@@ -7,9 +7,9 @@ from typing import Dict, Any
 
 sys.path.append("./src/")
 
-from rag.embedding_model import Multilingual
+from models.embedding import Multilingual
 
-with open("src/configs/config.yaml", "r") as config_file:
+with open("src/configs/config.yaml", "r", encoding="utf-8") as config_file:
     config = yaml.safe_load(config_file)
 
 

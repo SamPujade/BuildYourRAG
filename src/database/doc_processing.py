@@ -10,9 +10,7 @@ from PIL import Image
 
 sys.path.append("./src/")
 
-from database.utils import entity_extraction
 from models.generation import GeminiFlash
-from templates.processing import prompt_entity_extraction_KID
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -265,46 +263,6 @@ def process(collection, file_path, config):
         ]
     else:
         metadatas = [{"from": filename, "type": labels[j]} for j in range(len(labels))]
-
-    collection.add(
-        documents=chunks,
-        ids=[f"id{start_id + i}" for i in range(len(chunks))],
-        metadatas=metadatas,
-    )
-
-
-def process_KID(collection, file_path, config):
-    chunks, labels, indexes = extract_chunks(file_path, config)
-
-    # Extract entities and add them to metadatas
-    all_chunks = "\n\n".join(chunks)
-    entities = entity_extraction(all_chunks, prompt_entity_extraction_KID)
-    document_metadatas = entities.copy()
-    document_metadatas["from"] = os.path.basename(file_path)
-
-    doc = collection.get()
-    start_id = max([int(id[2:]) + 1 for id in doc["ids"]], default=0)
-
-    if indexes:
-        start_index = (
-            max([m["chunk"] for m in doc["metadatas"] if "chunk" in m], default=-1) + 1
-        )
-        metadatas = [
-            {
-                **document_metadatas,
-                "type": labels[j],
-                "chunk": start_index + indexes[j],
-            }
-            for j in range(len(labels))
-        ]
-    else:
-        metadatas = [
-            {
-                **document_metadatas,
-                "type": labels[j],
-            }
-            for j in range(len(labels))
-        ]
 
     collection.add(
         documents=chunks,

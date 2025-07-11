@@ -6,10 +6,10 @@ Usage:
 """
 
 import os
-from dotenv import load_dotenv
 import uuid
 import requests
 import streamlit as st
+from dotenv import load_dotenv
 
 
 # FastAPI server base URL
@@ -21,13 +21,19 @@ BASE_URL = f"http://127.0.0.1:{port}"
 class RAGApp:
     """
     A Streamlit application for interacting with an LLM (Language Model) that
-    can answer questions based on uploaded documents or directly from user input.
+    can answer questions based on uploaded documents or directly from user
+    input.
 
-    The application supports both retrieval-augmented generation (RAG) when documents
-    are provided and direct LLM invocation when no documents are uploaded.
+    The application supports both retrieval-augmented generation (RAG) when
+    documents are provided and direct LLM invocation when no documents are
+    uploaded.
     """
 
     def __init__(self):
+        """
+        Initializes the RAGApp, setting up a session ID, model name, and
+        loading the base configuration.
+        """
         self.session_id = uuid.uuid4()
         self.model_name = None
         self.base_config = self.get_config()
@@ -35,15 +41,20 @@ class RAGApp:
         self.initialize_ui()
 
     def get_config(self):
+        """
+        Retrieves the application's configuration from the backend.
+        Returns:
+            dict: The configuration dictionary.
+        """
         response = requests.post(f"{BASE_URL}/get-config/", timeout=10)
         response_json = response.json()
         return response_json["config"]
 
     def initialize_ui(self):
         """
-        Initialize the user interface (UI) of the Streamlit application, including the sidebar,
-        main body, chat input, and message display. Sets up the LLM and, if documents are uploaded,
-        prepares the retrieval chain for RAG.
+        Initializes the Streamlit user interface, including page
+        configuration, sidebar setup, chat history display, and input
+        handling.
         """
         st.set_page_config(
             page_title="BuildYourRAG",
@@ -71,8 +82,9 @@ class RAGApp:
 
     def setup_sidebar(self):
         """
-        Set up the sidebar in the Streamlit application, including the file uploader for PDFs.
-        If PDFs are uploaded, the documents are loaded and stored.
+        Sets up the Streamlit sidebar with model selection,
+        hyperparameters, collection management (create/delete),
+        file upload, and file deletion functionalities.
         """
         with st.sidebar:
             response = requests.post(
@@ -209,20 +221,15 @@ class RAGApp:
 
     def generate_response(self, prompt_user):
         """
-        Generate a response to the user's input. If documents are uploaded and the RAG chain is available,
-        the response is generated using retrieval-augmented generation. Otherwise, the response is generated
-        directly by invoking the LLM.
-
+        Generates a response to the user's input using the selected LLM.
         Args:
             prompt_user (str): The user's input prompt.
-
         Returns:
-            tuple: A tuple containing the response text and token counts (which are placeholders here).
+            tuple: A tuple containing the response text, retrieved context,
+                   and updated user context.
         """
         history = st.session_state["messages"][:-1]
         user_context = st.session_state["user_context"]
-        # if len(history) % 2 == 1:
-        #     history.pop()  # remove last message
 
         response = requests.post(
             f"{BASE_URL}/generate-response/",
@@ -245,7 +252,8 @@ class RAGApp:
 
     def display_chat_history(self):
         """
-        Display the chat history stored in the session state, rendering each message in the chat UI.
+        Displays the chat history in the Streamlit UI.
+        Initializes with an assistant message if no messages exist.
         """
         if not st.session_state["messages"]:
             response = requests.post(
@@ -264,9 +272,8 @@ class RAGApp:
 
     def handle_user_input(self, prompt_user):
         """
-        Handle the user's input by generating a response from the LLM (or RAG chain) and updating
-        the chat history.
-
+        Handles user input by generating a response and updating the chat
+        history.
         Args:
             prompt_user (str): The user's input prompt.
         """
@@ -292,7 +299,7 @@ class RAGApp:
 
     def apply_styles(self):
         """
-        Apply custom CSS styles to the Streamlit app to enhance the UI/UX.
+        Applies custom CSS styles to the Streamlit application.
         """
         with open("src/styles.css", encoding="utf-8") as f:
             css = f.read()
