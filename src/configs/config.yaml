@@ -1,5 +1,8 @@
 # This file configures model hyperparameters.
 
+agent:
+  YAML_PATH: "src/agents/examples/generic.yaml"
+
 dataset:
   CHROMA_DATA_PATH: "data/chroma_data"
   COLLECTION_NAME: "test"

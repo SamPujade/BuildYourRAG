@@ -1,6 +1,5 @@
 import os
 import sys
-from io import BytesIO
 from dotenv import load_dotenv
 
 # third-party imports
@@ -8,12 +7,11 @@ from pdf2image import convert_from_path
 from PyPDF2 import PdfReader
 from PIL import Image
 
-from pytesseract import image_to_string
 
 sys.path.append("./src/")
 
-from database.utils import extract_product_name, extract_risk_level, entity_extraction
-from rag.generation_model import GeminiFlash
+from database.utils import entity_extraction
+from models.generation import GeminiFlash
 from templates.processing import prompt_entity_extraction_KID
 
 load_dotenv()
@@ -270,7 +268,7 @@ def process(collection, file_path, config):
 
     collection.add(
         documents=chunks,
-        ids=[f"id{start_id+i}" for i in range(len(chunks))],
+        ids=[f"id{start_id + i}" for i in range(len(chunks))],
         metadatas=metadatas,
     )
 
@@ -310,6 +308,6 @@ def process_KID(collection, file_path, config):
 
     collection.add(
         documents=chunks,
-        ids=[f"id{start_id+i}" for i in range(len(chunks))],
+        ids=[f"id{start_id + i}" for i in range(len(chunks))],
         metadatas=metadatas,
     )

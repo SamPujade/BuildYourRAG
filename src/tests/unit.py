@@ -7,7 +7,7 @@ This script runs unit tests using the `unittest` framework.
 
 Usage :
 
-Run all unit tests : 
+Run all unit tests :
 
 python unit.py
 
@@ -24,17 +24,15 @@ import unittest
 import os
 import sys
 import yaml
-import shutil
 from dotenv import load_dotenv
 
 import chromadb
 
 sys.path.append("./src/")
 
-from rag.embedding_model import Multilingual
-from rag.pipeline import RAGPipeline
+from models.embedding import Multilingual
+from models.generation import GeminiFlash
 from database.doc_processing import process
-from rag.generation_model import MistralNemo, GeminiFlash
 
 
 TEST_FILE = "data/test/unit/unit_paper.pdf"
@@ -67,12 +65,10 @@ class RAGTest(unittest.TestCase):
         self.assertTrue(len(db["documents"]) > 0)
         self.assertEqual(db["metadatas"][0]["chunk"], 0)
 
-
     def testCreatePipeline(self):
         rag_pipeline = RAGPipeline(self.coll_name, config=self.config)
 
         self.assertEqual(rag_pipeline.retriever.collection.name, self.coll_name)
-
 
     def testQuery(self):
         rag_pipeline = RAGPipeline(self.coll_name, config=self.config)
@@ -83,14 +79,12 @@ class RAGTest(unittest.TestCase):
         self.assertIsInstance(context, list)
         self.assertTrue("Attention Is All You Need" in output)
 
-
     def testGeminiQuery(self):
         model = GeminiFlash(api_key=self.google_api_key)
         query = "Hi how are you"
         output = model.predict(query, [])
 
         self.assertIsInstance(output, str)
-
 
     def testLlamaCPPQuery(self):
         model = MistralNemo()
@@ -114,9 +108,8 @@ class RAGTest(unittest.TestCase):
         self.assertIsInstance(output_2, str)
         self.assertTrue(output_2 == "Context")
 
-
     def testMultipleDocs(self):
-        coll_name_mult = self.coll_name+  "_mult"
+        coll_name_mult = self.coll_name + "_mult"
         if coll_name_mult in [c.name for c in self.client.list_collections()]:
             self.client.delete_collection(name=coll_name_mult)
         collection = self.client.create_collection(
@@ -129,9 +122,9 @@ class RAGTest(unittest.TestCase):
         )
         process(collection, TEST_FILE, self.config)
         metadatas_doc_2 = collection.get(where={"from": "unit_paper.pdf"})["metadatas"]
-        
-        self.assertTrue(1 in list(set([m['chunk'] for m in metadatas_doc_2])))
-        self.assertFalse(0 in list(set([m['chunk'] for m in metadatas_doc_2])))
+
+        self.assertTrue(1 in list(set([m["chunk"] for m in metadatas_doc_2])))
+        self.assertFalse(0 in list(set([m["chunk"] for m in metadatas_doc_2])))
 
 
 if __name__ == "__main__":

@@ -6,8 +6,7 @@ from dotenv import load_dotenv
 
 sys.path.append("./src/")
 
-from templates.processing import prompt_entity_extraction_KID
-from rag.generation_model import GeminiFlash
+from models.generation import GeminiFlash
 
 
 load_dotenv()

@@ -1,4 +1,3 @@
-
 def router_template(query):
     return f"""
     Given the user question below, classify it as either `Context`, or `Other`.
@@ -13,6 +12,7 @@ def router_template(query):
 
     Classification:"""
 
+
 def reformulate_query(query: str):
     return f"""
         I am using a RAG system on ETF financial products (description documents). I have the following query : 
@@ -21,6 +21,7 @@ def reformulate_query(query: str):
 
         Write a new query based on this query that will be used to retrieve context. The new generated query will be embedded by an embedding model, and then copmared to every element of my vector database using similarity search. Write the best query to capture the semantic meaning and retrieve the correct chunks.
     """
+
 
 def route_and_reformulate_KID(query):
     return f"""

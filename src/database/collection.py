@@ -11,14 +11,19 @@ def group_sub_chunks(collection):
                 subchunks = collection.get(where={"chunk": chunk_index})["documents"]
                 chunks.append("".join(subchunks))
                 indexes.append(chunk_index)
-                metadatas.append({k: v for k, v in elements["metadatas"][i].items() if k != "chunk"})
+                metadatas.append(
+                    {k: v for k, v in elements["metadatas"][i].items() if k != "chunk"}
+                )
 
         # If not a not sub chunk:
         else:
             chunks.append(elements["documents"][i])
-            metadatas.append({k: v for k, v in elements["metadatas"][i].items() if k != "chunk"})
+            metadatas.append(
+                {k: v for k, v in elements["metadatas"][i].items() if k != "chunk"}
+            )
 
     return chunks, metadatas
+
 
 def delete_collection(client, collection_name):
     collection = client.get_collection(collection_name)

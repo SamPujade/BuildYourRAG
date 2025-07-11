@@ -7,6 +7,7 @@ import chromadb
 from streamlit.testing.v1 import AppTest
 
 import sys
+
 sys.path.append("./src/")
 
 from rag.embedding_model import Multilingual
@@ -14,6 +15,7 @@ from database.doc_processing import process
 
 
 TEST_FILE = "data/test/unit/unit_paper.pdf"
+
 
 class RAGTest(unittest.TestCase):
     @classmethod

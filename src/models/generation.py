@@ -1,6 +1,5 @@
 import yaml
 import os
-import re
 import base64
 
 import google.generativeai as genai
@@ -98,7 +97,7 @@ class GeminiFlash(GoogleAI):
     def __init__(self, api_key, response_format=None):
         super(GeminiFlash, self).__init__(api_key, response_format)
         self.path = "gemini-1.5-flash"
-        self.input_token_limit = 500000
+        self.input_token_limit = 500000  # Example, actual might vary
         self.init_model()
 
 
@@ -106,6 +105,7 @@ class GeminiFlash8b(GoogleAI):
     def __init__(self, api_key, response_format=None):
         super(GeminiFlash8b, self).__init__(api_key, response_format)
         self.path = "gemini-1.5-flash-8b"
+        self.input_token_limit = 1000000  # Example, actual might vary
         self.init_model()
 
 
@@ -113,6 +113,28 @@ class GeminiPro(GoogleAI):
     def __init__(self, api_key, response_format=None):
         super(GeminiPro, self).__init__(api_key, response_format)
         self.path = "gemini-1.5-pro"
+        self.input_token_limit = 1000000  # Example, actual might vary
+        self.init_model()
+
+
+class GeminiProVision(GoogleAI):
+    def __init__(self, api_key, response_format=None):
+        super(GeminiProVision, self).__init__(api_key, response_format)
+        self.path = "gemini-pro-vision"
+        self.init_model()
+
+
+class GeminiProLatest(GoogleAI):
+    def __init__(self, api_key, response_format=None):
+        super(GeminiProLatest, self).__init__(api_key, response_format)
+        self.path = "gemini-pro-latest"
+        self.init_model()
+
+
+class GeminiFlashLatest(GoogleAI):
+    def __init__(self, api_key, response_format=None):
+        super(GeminiFlashLatest, self).__init__(api_key, response_format)
+        self.path = "gemini-1.5-flash-latest"
         self.init_model()
 
 
@@ -125,7 +147,11 @@ class GeminiFlash2Exp(GoogleAI):
 
 model_classes = {
     "Gemini 1.5 Flash": GeminiFlash,
+    "Gemini 1.5 Flash 8B": GeminiFlash8b,
     "Gemini 1.5 Pro": GeminiPro,
+    "Gemini Pro Vision": GeminiProVision,
+    "Gemini Pro Latest": GeminiProLatest,
+    "Gemini 1.5 Flash Latest": GeminiFlashLatest,
     "Gemini 2.0 Flash Experimental": GeminiFlash2Exp,
 }
 

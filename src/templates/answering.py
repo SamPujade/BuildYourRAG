@@ -89,7 +89,6 @@ def general_prompt_template(query: str) -> str:
     """
 
 
-
 def prompt_template_KID(query: str, context: list, names: list) -> str:
     """
     Generate a prompt for text generation from context.

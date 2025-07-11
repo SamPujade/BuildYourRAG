@@ -1,4 +1,3 @@
-
 def generation_template(context):
     return f"""
         Context: {context}
@@ -20,6 +19,7 @@ def generation_template_german(context):
         Ihre Ausgabe muss in einem JSON-Format mit den folgenden Schlüsseln erfolgen: "Question", "Answer", "Type".
     """
 
+
 def fine_tuning_template(chunk):
     return f"""
         Convert this text to a list of questions and answers covering the whole text, in JSON format.
@@ -31,6 +31,7 @@ def fine_tuning_template(chunk):
         Q&A = {{'Question': str, 'Answer': str}}
         Return: list[Q&A]
     """
+
 
 def fine_tuning_template_german(chunk):
     return f"""

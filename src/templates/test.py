@@ -1,4 +1,3 @@
-
 def comparison_template(question: str, output: str, answer: str) -> str:
     return f"""
         Evaluate the response of a question, by comparing it to the reference answer.
@@ -17,6 +16,7 @@ def comparison_template(question: str, output: str, answer: str) -> str:
 
         Start your output with "Score: {{score}}".
 """
+
 
 def comparison_template_sparkasse(question: str, output: str, answer: str) -> str:
     return f"""

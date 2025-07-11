@@ -1,23 +1,20 @@
 import os
 import sys
-import yaml
 import subprocess
-from dotenv import load_dotenv
+from typing import List, Dict
+from pydantic import BaseModel
 
 from fastapi import FastAPI, File, UploadFile, Form
-from typing import List, Optional, Dict
-from pydantic import BaseModel
+from dotenv import load_dotenv
+import yaml
 import chromadb
 
 sys.path.append("./src/")
 
 # local module imports
-from rag.pipeline import RAGPipeline
-from database.doc_processing import process
-from rag.generation_model import get_model_by_name, get_model_names
-from rag.embedding_model import get_model
-from agents.agent import KIDAgent
-from templates.answering import prompt_template_KID_german
+from models.generation import get_model_by_name, get_model_names
+from models.embedding import get_model
+from agents.agent import Agent
 
 
 load_dotenv()
@@ -25,7 +22,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 app = FastAPI()
 
-with open("src/configs/config.yaml", "r") as config_file:
+with open("src/configs/config.yaml", "r", encoding="utf-8") as config_file:
     config = yaml.safe_load(config_file)
 
 CHROMA_DATA_PATH = config["dataset"]["CHROMA_DATA_PATH"]
@@ -37,7 +34,7 @@ EMB_MODEL_NAME = config["processing"]["EMBEDDING_MODEL"]
 SIMILARITY = config["retrieval"]["SIMILARITY"]
 client = chromadb.PersistentClient(path=CHROMA_DATA_PATH)
 embedding_function = get_model(EMB_MODEL_NAME).embedding_function
-agent = KIDAgent()
+agent = Agent(config)
 
 
 def give_permissions(folder):

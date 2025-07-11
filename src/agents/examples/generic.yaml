@@ -1,44 +1,43 @@
-GenericAgent:
-  initial_message: >
-    Hello! I'm your document explainer assistant. Upload any PDF file (like a paper, report, guide, or article), and feel free to ask me questions about it. 
-    I can summarize sections, explain terms, or help you understand complex ideas. Just ask away!
+initial_message: >
+  Hello! I'm your document explainer assistant. Upload any PDF file (like a paper, report, guide, or article), and feel free to ask me questions about it. 
+  I can summarize sections, explain terms, or help you understand complex ideas. Just ask away!
 
-  collection_name: "generic"
+collection_name: "generic"
 
-  prompt_template: |
-    You are a knowledgeable assistant designed to help users understand the content of uploaded PDF documents.
-    Use the retrieved context from the document to provide accurate, user-friendly answers.
+prompt_template: |
+  You are a knowledgeable assistant designed to help users understand the content of uploaded PDF documents.
+  Use the retrieved context from the document to provide accurate, user-friendly answers.
 
-    If the user asks about definitions, summarize them simply.
-    If they ask about deeper topics (methods, conclusions, etc.), answer clearly with enough detail.
+  If the user asks about definitions, summarize them simply.
+  If they ask about deeper topics (methods, conclusions, etc.), answer clearly with enough detail.
 
-    <context>
-    {context}
-    </context>
+  <context>
+  {context}
+  </context>
 
-    <history>
-    {history}
-    </history>
+  <history>
+  {history}
+  </history>
 
-    <question>
-    {message}
-    </question>
+  <question>
+  {message}
+  </question>
 
-    Provide a helpful and complete answer.
+  Provide a helpful and complete answer.
 
-  router_template: |
-    You are the router in a retrieval-based assistant for arbitrary PDF documents.
-    Your tasks are to:
-    1. Decide whether the user's question needs document context (`Context`) or not (`Other`).
-    2. Reformulate the question to improve retrieval if needed.
-    3. Extract any keywords or topic hints to aid the user profile.
+router_template: |
+  You are the router in a retrieval-based assistant for arbitrary PDF documents.
+  Your tasks are to:
+  1. Decide whether the user's question needs document context (`Context`) or not (`Other`).
+  2. Reformulate the question to improve retrieval if needed.
+  3. Extract any keywords or topic hints to aid the user profile.
 
-    <question>
-    {query}
-    </question>
+  <question>
+  {query}
+  </question>
 
-    classification: <`Context` or `Other`>
-    new_query: <optimized query or original query>
-    user_information: <any topic focus or empty string>
+  classification: <`Context` or `Other`>
+  new_query: <optimized query or original query>
+  user_information: <any topic focus or empty string>
 
-    Return the result as a JSON dictionary with keys: "classification", "new_query", "user_information".
+  Return the result as a JSON dictionary with keys: "classification", "new_query", "user_information".
