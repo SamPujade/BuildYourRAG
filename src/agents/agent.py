@@ -1,9 +1,11 @@
 import os
+import io
 from pathlib import Path
 import sys
 import yaml
 
 sys.path.append("./src/")
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 from database.doc_processing import process
 from rag import Retriever, Generator, Router

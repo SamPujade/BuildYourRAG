@@ -13,9 +13,14 @@
 - API-based LLM integration (Gemini)  
 - ChromaDB-powered vector store  
 - Streamlit + FastAPI architecture  
-- Easy dependency management with `uv` and `pyproject.toml`  
+- Easy dependency management with `uv` and `pyproject.toml`
 
----
+## Requirements
+
+- Python 3.10+
+- [`uv`](https://github.com/astral-sh/uv) (modern Python package manager)
+- [`Microsoft C++ Build Tools`](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (Windows)
+- [`Poppler`](https://github.com/oschwartz10612/poppler-windows/releases/) (Windows)
 
 ## Getting Started
 
@@ -99,12 +104,3 @@ router_template: |
         └── upload/          # Uploaded folders
 
 ```
-
----
-
-## 📌 Requirements
-
-- Python 3.10+
-- [`uv`](https://github.com/astral-sh/uv) (modern Python package manager)
-
-Install `uv` if not already installed: https://docs.astral.sh/uv/getting-started/installation/

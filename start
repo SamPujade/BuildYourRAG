@@ -8,6 +8,7 @@ if [ ! -f .env ]; then
 fi
 export $(grep -v '^#' .env | xargs)
 mkdir -p data/chroma_data/upload/
+mkdir -p logs/
 
 # start backend
 echo "Starting Backend on port $BACKEND_PORT"
@@ -16,15 +17,18 @@ uv run uvicorn src.server.main:app --reload --port $BACKEND_PORT > "logs/backend
 
 # wait for backend to be ready
 echo "Waiting for backend to start on port $BACKEND_PORT..."
-while ! nc -z localhost $BACKEND_PORT; do
+while ! uv run python -c "import socket; s = socket.socket(); exit(s.connect_ex(('localhost', int('$BACKEND_PORT'))) != 0)"; do
   sleep 0.5
 done
 echo "Backend is up."
 
 # start frontend
 echo "Starting Frontend"
-uv run streamlit run src/app.py --browser.gatherUsageStats false > "logs/frontend.log" 2>&1 &
-
+while true; do
+  uv run streamlit run src/app.py --browser.gatherUsageStats false --server.headless true >> "logs/frontend.log" 2>&1
+  echo "Streamlit crashed. Restarting in 2s..."
+  sleep 2
+done
 echo "=== Startup Complete ==="
 
 wait

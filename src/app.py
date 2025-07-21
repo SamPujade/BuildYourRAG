@@ -201,13 +201,17 @@ class RAGApp:
                         for file in uploaded_files
                     ]
                     with st.spinner("Processing files..."):
-                        requests.post(
-                            f"{BASE_URL}/upload/",
-                            files=files,
-                            data={"collection_name": self.collection_name},
-                            timeout=1000,
-                        )
-                        st.success("Files successfully added !")
+                        try:
+                            response = requests.post(
+                                f"{BASE_URL}/upload/",
+                                files=files,
+                                data={"collection_name": self.collection_name},
+                                timeout=1000,
+                            )
+                            response.raise_for_status()
+                            st.success("Files successfully added!")
+                        except requests.exceptions.RequestException as e:
+                            st.error(f"Failed to upload files: {e}")
 
                 st.header("Collection Files")
                 response = requests.post(
@@ -258,7 +262,11 @@ class RAGApp:
             },
             timeout=1000,
         )
-        response_json = response.json()
+        try:
+            response_json = response.json()
+        except ValueError:
+            st.error("Error processing the response from the server. Please check the backend logs.")
+            return "", [], []
 
         return (
             response_json["output"],
@@ -304,6 +312,9 @@ class RAGApp:
                     prompt_user
                 )
 
+            if not full_response:
+                return
+            
             st.chat_message("assistant").write(full_response)
             st.session_state["messages"].append(
                 {"role": "assistant", "content": full_response}
