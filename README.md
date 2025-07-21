@@ -36,6 +36,7 @@ cd BuildYourRAG
 Create a `.env` file in the root of your project with the following content:
 
 ```env
+BACKEND_PORT=8199
 GOOGLE_API_KEY=your_gemini_api_key_here
 ```
 
